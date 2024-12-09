@@ -58,8 +58,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Install or run the Framework Benchmarks test suite.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=
-        '''If an argument includes (type int-sequence), then it accepts integer lists in multiple forms.
+        epilog='''If an argument includes (type int-sequence), then it accepts integer lists in multiple forms.
         Using a single number e.g. 5 will create a list [5]. Using commas will create a list containing those
         values e.g. 1,3,6 creates [1, 3, 6]. Using three colon-separated numbers of start:step:end will create a
         list, using the semantics of python's range function, e.g. 1:3:15 creates [1, 4, 7, 10, 13] while
@@ -86,15 +85,13 @@ def main(argv=None):
         '--quiet',
         action='store_true',
         default=False,
-        help=
-        'Only print a limited set of messages to stdout, keep the bulk of messages in log files only'
+        help='Only print a limited set of messages to stdout, keep the bulk of messages in log files only'
     )
     parser.add_argument(
         '--reverse-order',
         action='store_true',
         default=False,
-        help=
-        'Run the tests in reverse order, starting with the last test in the list'
+        help='Run the tests in reverse order, starting with the last test in the list'
     )
     parser.add_argument(
         '--results-name',
@@ -107,13 +104,11 @@ def main(argv=None):
     parser.add_argument(
         '--results-upload-uri',
         default=None,
-        help=
-        'A URI where the in-progress results.json file will be POSTed periodically'
+        help='A URI where the in-progress results.json file will be POSTed periodically'
     )
     parser.add_argument(
         '--parse',
-        help=
-        'Parses the results of the given timestamp and merges that with the latest results'
+        help='Parses the results of the given timestamp and merges that with the latest results'
     )
 
     # Test options
@@ -150,8 +145,7 @@ def main(argv=None):
         '--mode',
         choices=['benchmark', 'verify', 'debug'],
         default='benchmark',
-        help=
-        'verify mode will only start up the tests, curl the urls and shutdown. debug mode will skip verification and leave the server running.'
+        help='verify mode will only start up the tests, curl the urls and shutdown. debug mode will skip verification and leave the server running.'
     )
     parser.add_argument(
         '--list-tests',
@@ -203,6 +197,11 @@ def main(argv=None):
         '--test-container-memory',
         default=None,
         help='Amount of memory to be given to the test container')
+    parser.add_argument(
+        '--iops',
+        default=None,
+        help="IOPS"
+    )
     parser.add_argument(
         '--extra-docker-runtime-args',
         nargs='*',

@@ -1,3 +1,33 @@
+# This is a forked version of the TechEmpower/FrameworkBenchmarks repository. 
+
+The purpose of this fork is to provide test spring under different IOPS and CPU constraints. 
+
+The original work lacks support in constaining CPU and IOPS, so I made a version capable of doing so.
+
+example of constraints:
+
+```bash
+./tfb --mode verify --test spring --cpu 0.5 --iops 100
+```
+
+This command will run the spring test with 0.5 CPU and 100 IOPS.
+
+Moreover, you can name the result using `result-name` flag:
+
+```bash
+./tfb --mode verify --test spring --cpu 0.5 --iops 100 --result-name "my-test"
+```
+
+This will name the result as "my-test".
+
+This modification is done by Hanwen Yu (Dustella). 
+
+Maybe later, I will draft the changes and make a pull request to the original repository.
+
+
+The original README.md file is below.
+
+
 # Welcome to [TechEmpower Framework Benchmarks (TFB)](http://www.techempower.com/benchmarks/)
 
 [![Build Status](https://github.com/TechEmpower/FrameworkBenchmarks/workflows/build/badge.svg?branch=master&event=push)](https://github.com/TechEmpower/FrameworkBenchmarks/actions?query=workflow%3Abuild+branch%3Amaster)

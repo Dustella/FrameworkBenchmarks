@@ -55,6 +55,7 @@ class BenchmarkConfig:
         self.cpuset_cpus = args.cpuset_cpus
         self.test_container_memory = args.test_container_memory
         self.extra_docker_runtime_args = args.extra_docker_runtime_args
+        self.iops = args.iops
 
         if self.network_mode is None:
             self.network = 'tfb'
@@ -80,7 +81,8 @@ class BenchmarkConfig:
         self.lang_root = os.path.join(self.fw_root, "frameworks")
         self.results_root = os.path.join(self.fw_root, "results")
         self.wrk_root = os.path.join(self.fw_root, "toolset", "wrk")
-        self.scaffold_root = os.path.join(self.fw_root, "toolset", "scaffolding")
+        self.scaffold_root = os.path.join(
+            self.fw_root, "toolset", "scaffolding")
 
         if hasattr(self, 'parse') and self.parse is not None:
             self.timestamp = self.parse

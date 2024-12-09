@@ -9,7 +9,7 @@ node_modules/
 **/.classpath
 **/.project
 **/.settings
-
+*.pdf
 # maven
 target/
 *.out

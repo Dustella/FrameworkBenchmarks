@@ -17,11 +17,13 @@ from datetime import datetime
 # Cross-platform colored text
 from colorama import Fore, Style
 
+
 class ByteEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, bytes):
             return obj.decode()
         return super().default(obj)
+
 
 class Results:
     def __init__(self, benchmarker):
@@ -30,8 +32,13 @@ class Results:
         '''
         self.benchmarker = benchmarker
         self.config = benchmarker.config
+        if self.config.results_name:
+            dir_name = self.config.results_name
+        else:
+            dir_name = self.config.timestamp
+        print(self.config)
         self.directory = os.path.join(self.config.results_root,
-                                      self.config.timestamp)
+                                      dir_name)
         try:
             os.makedirs(self.directory)
         except OSError:
@@ -39,18 +46,20 @@ class Results:
         self.file = os.path.join(self.directory, "results.json")
 
         self.uuid = str(uuid.uuid4())
-        self.name = datetime.now().strftime(self.config.results_name)
+
+        self.name = self.config.results_name if self.config.results_name else datetime.now(
+        ).strftime(self.config.results_name)
         self.environmentDescription = self.config.results_environment
         try:
             self.git = dict()
             subprocess.call('git config --global --add safe.directory {}'.format(self.config.fw_root),
-                        shell=True,
-                        cwd=self.config.fw_root)
+                            shell=True,
+                            cwd=self.config.fw_root)
             self.git['commitId'] = self.__get_git_commit_id()
             self.git['repositoryUrl'] = self.__get_git_repository_url()
             self.git['branchName'] = self.__get_git_branch_name()
         except Exception:
-            #Could not read local git repository, which is fine.
+            # Could not read local git repository, which is fine.
             self.git = None
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
@@ -340,7 +349,8 @@ class Results:
     def __write_results(self):
         try:
             with open(self.file, 'w') as f:
-                f.write(json.dumps(self.__to_jsonable(), indent=2, cls=ByteEncoder))
+                f.write(json.dumps(self.__to_jsonable(),
+                        indent=2, cls=ByteEncoder))
         except IOError:
             log("Error writing results.json")
 
@@ -365,7 +375,8 @@ class Results:
 
             log("Running \"%s\" (cwd=%s)" % (command, wd))
             try:
-                line_count = int(subprocess.check_output(command, cwd=wd, shell=True))
+                line_count = int(subprocess.check_output(
+                    command, cwd=wd, shell=True))
             except (subprocess.CalledProcessError, ValueError) as e:
                 log("Unable to count lines of code for %s due to error '%s'" %
                     (framework, e))

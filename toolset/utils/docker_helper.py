@@ -58,8 +58,8 @@ class DockerHelper:
                         log(line,
                             prefix=log_prefix,
                             file=build_log,
-                            color=Fore.WHITE + Style.BRIGHT \
-                                if re.match(r'^Step \d+\/\d+', line) else '')
+                            color=Fore.WHITE + Style.BRIGHT
+                            if re.match(r'^Step \d+\/\d+', line) else '')
                     # Kill docker builds if they exceed 60 mins. This will only
                     # catch builds that are still printing output.
                     if self.benchmarker.time_logger.time_since_start() > 3600:
@@ -73,8 +73,8 @@ class DockerHelper:
                     log(buffer,
                         prefix=log_prefix,
                         file=build_log,
-                        color=Fore.WHITE + Style.BRIGHT \
-                            if re.match(r'^Step \d+\/\d+', buffer) else '')
+                        color=Fore.WHITE + Style.BRIGHT
+                        if re.match(r'^Step \d+\/\d+', buffer) else '')
             except Exception:
                 tb = traceback.format_exc()
                 log("Docker build failed; terminating",
@@ -95,7 +95,7 @@ class DockerHelper:
         '''
         for image in self.server.images.list():
             if len(image.tags) > 0:
-                if 'tfb.test.'  in image.tags[0]:
+                if 'tfb.test.' in image.tags[0]:
                     try:
                         self.server.images.remove(image.id, force=True)
                     except Exception:
@@ -192,9 +192,9 @@ class DockerHelper:
             cpuset_cpus = ''
 
             if self.benchmarker.config.cpuset_cpus is not None:
-                    cpuset_cpus = self.benchmarker.config.cpuset_cpus
+                cpuset_cpus = self.benchmarker.config.cpuset_cpus
 
-            log("Running docker container with cpu set: %s" %cpuset_cpus)
+            log("Running docker container with cpu set: %s" % cpuset_cpus)
 
             docker_cmd = ''
             if hasattr(test, 'docker_cmd'):
@@ -212,7 +212,7 @@ class DockerHelper:
                 # to the webserver from IDE
                 if hasattr(test, 'debug_port'):
                     ports[test.debug_port] = test.debug_port
-                    
+
             # Total memory limit allocated for the test container
             if self.benchmarker.config.test_container_memory is not None:
                 mem_limit = self.benchmarker.config.test_container_memory
@@ -222,7 +222,21 @@ class DockerHelper:
             # Convert extra docker runtime args to a dictionary
             extra_docker_args = {}
             if self.benchmarker.config.extra_docker_runtime_args is not None:
-                extra_docker_args = {key: int(value) if value.isdigit() else value for key, value in (pair.split(":", 1) for pair in self.benchmarker.config.extra_docker_runtime_args)}
+                extra_docker_args = {key: int(value) if value.isdigit() else value for key, value in (
+                    pair.split(":", 1) for pair in self.benchmarker.config.extra_docker_runtime_args)}
+                # if "device_write_iops" in extra_docker_args:
+                #     extra_docker_args["device_write_iops"] = [
+                #         extra_docker_args["device_write_iops"]]
+
+            if self.benchmarker.config.iops is not None:
+                [drive, rate] = self.benchmarker.config.iops.split(":")
+                print(f"Read IOPS: {drive}:{rate} ")
+                device_iops = {
+                    "Path": drive,
+                    "Rate": int(rate)
+                }
+                extra_docker_args["device_write_iops"] = [device_iops]
+                extra_docker_args["device_read_iops"] = [device_iops]
 
             container = self.server.containers.run(
                 "techempower/tfb.test.%s" % test.name,
@@ -244,7 +258,7 @@ class DockerHelper:
                 log_config={'type': None},
                 cpuset_cpus=cpuset_cpus,
                 **extra_docker_args
-                )
+            )
 
             watch_thread = Thread(
                 target=watch_container,
@@ -291,7 +305,7 @@ class DockerHelper:
         If no containers are passed, stops all running containers.
         '''
         is_multi_setup = self.benchmarker.config.server_docker_host != \
-                         self.benchmarker.config.database_docker_host
+            self.benchmarker.config.database_docker_host
 
         if containers:
             if not isinstance(containers, list):
@@ -355,6 +369,12 @@ class DockerHelper:
 
         ulimit = [{'name': 'nofile', 'hard': 65535, 'soft': 65535}]
 
+        # add IO constrant to database
+        IO_LIMIT_FLAG = True
+
+        if IO_LIMIT_FLAG:
+            pass
+
         container = self.database.containers.run(
             "techempower/%s" % database,
             name="tfb-database",
@@ -364,7 +384,18 @@ class DockerHelper:
             ulimits=ulimit,
             sysctls=sysctl,
             remove=True,
-            log_config={'type': None})
+            log_config={'type': None},
+            device_read_iops=[{
+
+                "Path": '/dev/nvme1n1',
+                "Rate": 100
+            }],
+            device_write_iops=[{
+                "Path": '/dev/nvme1n1',
+                "Rate": 100
+            }]
+
+        )
 
         # Sleep until the database accepts connections
         slept = 0
@@ -373,7 +404,8 @@ class DockerHelper:
         while not database_ready and slept < max_sleep:
             time.sleep(1)
             slept += 1
-            database_ready = databases[database].test_connection(self.benchmarker.config)
+            database_ready = databases[database].test_connection(
+                self.benchmarker.config)
 
         if not database_ready:
             log("Database was not ready after startup", prefix=log_prefix)
@@ -434,14 +466,14 @@ class DockerHelper:
         ulimit = [{'name': 'nofile', 'hard': 65535, 'soft': 65535}]
 
         return self.client.containers.run(
-                "techempower/tfb.wrk",
-                "/bin/bash /%s" % script,
-                environment=variables,
-                network=self.benchmarker.config.network,
-                network_mode=self.benchmarker.config.network_mode,
-                detach=True,
-                stderr=True,
-                ulimits=ulimit,
-                sysctls=sysctl,
-                remove=True,
-                log_config={'type': None})
+            "techempower/tfb.wrk",
+            "/bin/bash /%s" % script,
+            environment=variables,
+            network=self.benchmarker.config.network,
+            network_mode=self.benchmarker.config.network_mode,
+            detach=True,
+            stderr=True,
+            ulimits=ulimit,
+            sysctls=sysctl,
+            remove=True,
+            log_config={'type': None})
